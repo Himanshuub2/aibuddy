@@ -2,8 +2,9 @@ import express from "express";
 import { CreateChatSchema } from "./types";
 import { createCompletion } from "./openrouter";
 import { InMemoryStore } from "./InMemoryStore";
-
+import cors from 'cors'
 const app = express();
+app.use(cors())
 
 app.use(express.json());
 app.post('/chat', async (req, res) => {
@@ -20,18 +21,22 @@ app.post('/chat', async (req, res) => {
 
     let existingMessages = InMemoryStore.getInstance().get(conversationId);
     //open router
-    res.setHeader('Content-Type', 'text/event-stream; charset=utf8');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Connection', 'keep-alive');
+    res.flushHeaders();
     let response = "";
     await createCompletion([...existingMessages, {
         role: 'user',
         content: data.message
     }], data.model, (chunk: string) => {
+        console.log(chunk);
         response += chunk;
         res.write(chunk);
 
     })
-    res.end();
+    // res.end();
 
     InMemoryStore.getInstance().add(conversationId, {
         role: 'user',
