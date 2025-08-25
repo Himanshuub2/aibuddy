@@ -74,6 +74,7 @@ export async function createCompletion(messages: MessageType[],
                 }
             }
         } finally {
+            resolve();
             reader.cancel();
         }
     })
