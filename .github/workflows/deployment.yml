@@ -1,8 +1,5 @@
 name:Deploy-aibuddy
-on:
-  push:
-    branches:
-      - main
+on: [push, workflow_dispatch]
 jobs:
   deployment:
     runs-on: ubuntu-latest
