@@ -2,13 +2,55 @@ import { Router } from "express";
 import { CreateUser, VerifyUser } from "../types";
 import sendEmail from "../twilio";
 import jwt from 'jsonwebtoken';
-import {TOTP} from 'totp-generator';
 import { OTP } from "../otp";
 import { db } from "../prisma/prisma";
+import passportInstance, { cookieObj } from "../passport/init";
+import bcrypt from 'bcrypt';
+
+type GoogleUser = {
+    profile: any;
+    userId: string;
+}
+type User = {
+    id: string;
+    email: string;
+    password: string;
+}
 
 const authRouter = Router();
 
 // TODO : Rate limit this
+authRouter.get('/verify', (req, res) => {
+    const token = req.cookies.auth_token;
+
+    if (!token) {
+        res.status(401).json({
+            error: "Unauthorized",
+            loggedIn: false
+        })
+        return;
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+        if (typeof decoded === 'object') {
+            res.status(200).json({
+                loggedIn: true,
+                user: decoded
+            })
+            return;
+        }
+    }
+    catch (err) {
+        res.status(401).json({
+            error: "Unauthorized",
+            loggedIn: false
+        })
+        return;
+    }
+
+
+})
 authRouter.post('/initiate_signin', async (req, res) => {
     const { success, data } = CreateUser.safeParse(req.body);
     try {
@@ -33,7 +75,7 @@ authRouter.post('/initiate_signin', async (req, res) => {
         }
 
         res.status(200).json({
-            message:'DEVELOPMENT MODE ',
+            message: 'DEVELOPMENT MODE ',
             otp
         })
     }
@@ -57,22 +99,22 @@ authRouter.post('/signin', async (req, res) => {
         return;
     }
     // check if the otp is correct /verify
-    const isValidOTP = OTP.verifyOTP(data.otp,data.email);
-    if(!isValidOTP){
+    const isValidOTP = OTP.verifyOTP(data.otp, data.email);
+    if (!isValidOTP) {
         res.status(401).json({
             error: "OTP verification failed"
         })
         return;
     }
-    
+
     // const userId = '123Id'
     const user = await db.user.create({
-        data:{
+        data: {
             email: data.email,
         }
     });
 
-    if(!user){
+    if (!user) {
         res.status(401).json({
             error: "User Creation Failed"
         })
@@ -88,5 +130,76 @@ authRouter.post('/signin', async (req, res) => {
         token
     })
 })
+
+authRouter.post('/signup', async (req, res) => {
+    const { data, error } = CreateUser.safeParse(req.body);
+    try {
+        if (!data || error) {
+            res.status(411).json({
+                message: "Invalid User Input",
+            })
+            return;
+        }
+        const isUserExist = await db.user.findUnique({
+            where: {
+                email: data.email
+            }
+        })
+        if (isUserExist) {
+            res.status(400).json({
+                message: "User already exists"
+            })
+            return;
+        }
+
+        const hashedPass = await bcrypt.hash(data.password!, 10);
+        const user = await db.user.create({
+            data: {
+                email: data?.email,
+                password: hashedPass
+            }
+        })
+        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);
+        res.cookie('auth_token', token, cookieObj)
+
+        res.status(200).json({
+            message: "User created successfully"
+        })
+        return;
+    }
+    catch (err: any) {
+        res.status(500).json({
+            message: "Something went wrong while signup",
+        })
+        return;
+    }
+
+
+})
+
+authRouter.post('/login', passportInstance.authenticate('local', { session: false }), (req, res) => {
+    const user = req.user as User;
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);
+    res.cookie('auth_token', token, cookieObj)
+    res.status(200).json({
+        message: "User logged in successfully"
+    })
+    res.redirect(`${process.env.FRONTEND_URL}/chat`);
+    return;
+});
+
+authRouter.get('/google',
+    passportInstance.authenticate('google', { scope: ['profile', 'email'], session: false })
+);
+
+authRouter.get('/google/callback',
+    passportInstance.authenticate('google', { failureRedirect: '/login', session: false }),
+    function (req, res) {
+        // Successful authentication, redirect home.
+        const user = req.user as GoogleUser;
+        const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET!)
+        res.cookie('auth_token', token, cookieObj)
+        res.redirect(`${process.env.FRONTEND_URL}/chat`);
+    });
 
 export default authRouter;

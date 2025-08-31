@@ -10,8 +10,8 @@ export async function createCompletion(messages: MessageType[],
     model: MODELS_TYPE,
     cb: (chunk: string) => void
 ) {
-    return new Promise<void>(async (resolve, reject) => {
-        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    return new Promise<boolean>(async (resolve, reject) => {
+        const response = await fetch(process.env.OPEN_ROUTER_URL, {
             method: 'POST',
             headers: {
                 Authorization: `Bearer ${OPENROUTER_API_KEY}`,
@@ -32,12 +32,12 @@ export async function createCompletion(messages: MessageType[],
         const decoder = new TextDecoder();
         let buffer = '';
 
-        try {  
+        try {
             let tokenCount = 0;
             while (true) {
                 tokenCount++;
-                if(tokenCount > MAX_TOKEN_ITERATIONS){
-                    resolve();
+                if (tokenCount > MAX_TOKEN_ITERATIONS) {
+                    resolve(true);
                     return;
                 }
                 const { done, value } = await reader.read();
@@ -49,8 +49,8 @@ export async function createCompletion(messages: MessageType[],
                 // Process complete lines from buffer
                 while (true) {
                     const lineEnd = buffer.indexOf('\n');
-                    if (lineEnd === -1){
-                        resolve();
+                    if (lineEnd === -1) {
+                        // No complete line in buffer, continue reading more data
                         break;
                     }
                     const line = buffer.slice(0, lineEnd).trim();
@@ -58,7 +58,10 @@ export async function createCompletion(messages: MessageType[],
 
                     if (line.startsWith('data: ')) {
                         const data = line.slice(6);
-                        if (data === '[DONE]') break;
+                        if (data === '[DONE]') {
+                            resolve(true);
+                            return;
+                        }
 
                         try {
                             const parsed = JSON.parse(data);
@@ -68,13 +71,13 @@ export async function createCompletion(messages: MessageType[],
                             }
                         } catch (e) {
                             // Ignore invalid JSON
-                            reject()
+                            reject(e);
                         }
                     }
                 }
             }
         } finally {
-            resolve();
+            resolve(true);
             reader.cancel();
         }
     })

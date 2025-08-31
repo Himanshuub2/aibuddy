@@ -41,6 +41,7 @@ export class InMemoryStore {
         }
 
         this.store[conversationId].messages.push(message);
+        this.store[conversationId].evictionTime = Date.now() + EVICTION_TIME;
     }
 
     get(conversationId: string) {

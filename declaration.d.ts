@@ -5,3 +5,7 @@ declare module 'base32'{
     export function decode(input:string):string;
 }
 
+declare module 'passport-google-oauth20'{
+    export const Strategy:any;
+}
+

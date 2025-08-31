@@ -6,13 +6,15 @@ export type MODELS_TYPE = typeof MODELS[number]
 export const CreateChatSchema = z.object({
     conversationId: z.uuid().optional(),
     message: z.string().max(MAX_INPUT_TOKEN),
-    model:z.enum(MODELS)
+    model:z.string().refine((val)=>MODELS.includes(val as MODELS_TYPE),{
+        message:'Invalid model'
+    })
 
 })
 
 export const CreateUser = z.object({
-    email: z.email()
-
+    email: z.email(),
+    password:z.string().min(8).optional(),
 })
 
 export const VerifyUser = z.object({

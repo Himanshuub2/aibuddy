@@ -1,0 +1,11 @@
+from node:20-alpine as server
+
+workdir /app
+RUN npm install -g bun
+copy package*.json ./
+copy prisma ./prisma/
+run npm install
+run bunx prisma generate
+copy . .
+expose 3000
+cmd ["bun","index.ts"]
