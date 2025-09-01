@@ -1,6 +1,10 @@
 #  to add code to docker hub, github actions used
 name: ci-prod
-on: [push, workflow_dispatch]
+on:
+  pull_request:
+    types: [closed]
+    branches: [main,master]
+  workflow_dispatch:
 jobs:
   build:
     runs-on: ubuntu-latest
