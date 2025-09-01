@@ -19,5 +19,5 @@ jobs:
           script: |
             docker login -u ${{ secrets.DOCKER_USER }} -p ${{ secrets.DOCKER_PASS }}
             cd /home/ubuntu/app
-            docker-compose pull
-            docker-compose up -d
+            docker compose pull
+            docker compose up -d

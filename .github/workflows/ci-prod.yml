@@ -15,4 +15,4 @@ jobs:
       
       - name: Build and Push Frontend and Backend Images to docker hub
         run: |
-          docker-compose -f dockerfiles/docker-compose.yml up -d
+          docker compose -f dockerfiles/docker-compose.yml up -d
