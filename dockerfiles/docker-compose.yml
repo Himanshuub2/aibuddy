@@ -6,9 +6,9 @@ services:
       - 5432:5432
 
   client:
+    image: aibuddy/client
     build:
       context: ../client
-      image: aibuddy/client
       dockerfile: ../dockerfiles/dockerfile.client
     ports:
       - 80:80
@@ -16,9 +16,9 @@ services:
       - server
   
   server:
+    image: aibuddy/server
     build:
       context: ..
-      image: aibuddy/server
       dockerfile: ./dockerfiles/dockerfile.server
     ports:
       - "3000"
