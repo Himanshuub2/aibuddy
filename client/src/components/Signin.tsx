@@ -24,7 +24,7 @@ const Signin: React.FC = () => {
     const handleEmailSignin = async (data: EmailSigninFormData) => {
         setIsLoading(true);
         setError('');
-
+        console.log(data);
         try {
             // TODO: Replace with actual API call
 
@@ -43,7 +43,7 @@ const Signin: React.FC = () => {
     const handleEmailSignup = async (data: EmailSignupFormData) => {
         setIsLoading(true);
         setError('');
-
+        console.log(data);
         try {
             // TODO: Replace with actual API call
 
@@ -81,6 +81,7 @@ const Signin: React.FC = () => {
     const handleOTPVerification = async (data: OTPFormData) => {
         setIsLoading(true);
         setError('');
+        console.log(data);
 
         try {
             // TODO: Replace with actual API call

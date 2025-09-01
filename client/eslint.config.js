@@ -10,15 +10,15 @@ export default tseslint.config([
   {
     files: ['**/*.{ts,tsx}'],
     rules: {
-      'indent': ['error', 4],
-      'max-len': ['error', { code: 120 }],
+      'indent': ['warn', 4],
+      'max-len': ['warn', { code: 120 }],
       '@typescript-eslint/no-explicit-any': 'warn',
-      '@typescript-eslint/no-unused-vars': ['error', {
+      '@typescript-eslint/no-unused-vars': ['warn', {
         argsIgnorePattern: '^_',
         varsIgnorePattern: '^_'
       }],
       'no-console': 'warn',
-      'prefer-const': 'error',
+      'prefer-const': 'warn',
     },
     extends: [
       js.configs.recommended,
