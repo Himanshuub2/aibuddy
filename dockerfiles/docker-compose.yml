@@ -6,7 +6,7 @@ services:
       - 5432:5432
 
   client:
-    image: aibuddy/client
+    image: aibuddy-client:latest
     build:
       context: ../client
       dockerfile: ../dockerfiles/dockerfile.client
@@ -16,7 +16,7 @@ services:
       - server
   
   server:
-    image: aibuddy/server
+    image: aibuddy-server:latest
     build:
       context: ..
       dockerfile: ./dockerfiles/dockerfile.server
