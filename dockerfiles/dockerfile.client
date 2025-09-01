@@ -1,9 +1,9 @@
-from node:20-alpine as client
+from node:22-alpine as client
 
 workdir /app
-
-copy . .
+copy package*.json .
 run npm install
+copy . .
 run npm run build
 
 # nginx - for reverse prox 
