@@ -32,8 +32,8 @@ app.use(cors({
 	exposedHeaders: ['Set-Cookie'], // If you're using cookies
 }))
 
-app.use('/ai', aiRouter);
-app.use('/auth', authRouter);
+app.use('/api/ai', aiRouter);
+app.use('/api/auth', authRouter);
 
 app.use(passportInstance.initialize());
 

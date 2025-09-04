@@ -2,11 +2,19 @@ version: '3.8'
 services:
   db:
     image: postgres:15-alpine
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+    env_file:
+      - .env
     ports:
       - 5432:5432
 
   client:
     image: himanshuub2/aibuddy-client:latest
+    env_file:
+      - .env
     build:
       context: ../client
       dockerfile: ../dockerfiles/dockerfile.client
@@ -17,6 +25,8 @@ services:
   
   server:
     image: himanshuub2/aibuddy-server:latest
+    env_file:
+      - .env
     build:
       context: ..
       dockerfile: ./dockerfiles/dockerfile.server
