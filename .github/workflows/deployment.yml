@@ -24,7 +24,7 @@ jobs:
           docker compose -f dockerfiles/docker-compose.yml push
 
 #  CD PART - Deploying on VM
-  deploy:
+  prepare-VM:
     runs-on: ubuntu-latest
     needs: build-and-push   # run only after build-and-push succeeds
 
@@ -38,7 +38,7 @@ jobs:
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
-          script: mkdir -p /home/ubuntu/app
+          script: mkdir -p ~/app
 
       - name: Copy docker-compose file to VM directory
         uses: appleboy/scp-action@v0.1.7
@@ -47,16 +47,20 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           source: "./dockerfiles/docker-compose.yml"
-          target: "/home/ubuntu/app/"
+          target: "~/app"
 
+  deploy-on-VM:
+    runs-on: ubuntu-latest
+    needs: prepare-VM
+    steps:
       - name: Pull and deploy images on VM
         uses: appleboy/ssh-action@v1.0.0
-        with: 
+        with:   
           host: ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
-            cd /home/ubuntu/app
+            cd ~/app
             docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin <<EOF
             ${{ secrets.DOCKER_PASS }}
             EOF
