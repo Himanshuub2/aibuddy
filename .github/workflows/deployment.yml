@@ -48,6 +48,7 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           source: "./dockerfiles/docker-compose.yml"
           target: "~/app/"
+          strip_components: 1
 
   deploy-on-VM:
     runs-on: ubuntu-latest
