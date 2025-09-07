@@ -2,15 +2,17 @@ version: '3.8'
 services:
   db:
     image: postgres:15-alpine
-    env_file:
-      - .env
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
     ports:
       - 5432:5432
 
   client:
     image: himanshuub2/aibuddy-client:latest
-    env_file:
-      - .env
+    environment:
+      - VITE_API_URL=${VITE_API_URL}
     build:
       context: ../client
       dockerfile: ../dockerfiles/dockerfile.client
@@ -21,11 +23,33 @@ services:
   
   server:
     image: himanshuub2/aibuddy-server:latest
-    env_file:
-      - .env
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - TWILIO_SID=${TWILIO_SID}
+      - TWILIO_TOKEN=${TWILIO_TOKEN}
+      - EMAIL_KEY=${EMAIL_KEY}
+      - FROM_EMAIL=${FROM_EMAIL}
+      - NODE_ENV=${NODE_ENV}
+      - JWT_SECRET=${JWT_SECRET}
+      - TOTP_SECRET=${TOTP_SECRET}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+      - POSTGRES_DB=${POSTGRES_DB}
+      - DB_CONNECTION_STRING=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@${VM_IP}:5432/${POSTGRES_DB}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
+      - VITE_API_URL=${VITE_API_URL}
+      - FRONTEND_URL=${FRONTEND_URL}
+      - VM_IP=${VM_IP}
+      - PORT=${PORT}
+      - OPEN_ROUTER_URL=${OPEN_ROUTER_URL}
     build:
       context: ..
       dockerfile: ./dockerfiles/dockerfile.server
     ports:
       - "3000"
+    depends_on:
+      - db
+
+
 
