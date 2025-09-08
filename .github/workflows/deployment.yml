@@ -59,7 +59,7 @@ jobs:
       - name: Verify Doppler setup
         run: |
           export DOPPLER_TOKEN=${{ secrets.DOPPLER_TOKEN }}
-          doppler secrets --project aibuddy --config prod
+          doppler secrets --project aibuddy --config prd
           echo "✅ Doppler is accessible"
 
   deploy-on-VM:
