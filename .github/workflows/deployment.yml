@@ -54,7 +54,7 @@ jobs:
     needs: prepare-VM
     steps:
       - name: Install Doppler CLI
-        run: curl -Ls https://cli.doppler.com/install.sh | sh
+        run: curl -Ls https://cli.doppler.com/install.sh | sudo sh
 
       - name: Verify Doppler setup
         run: |
