@@ -49,22 +49,9 @@ jobs:
           source: "./dockerfiles/docker-compose.yml"
           target: "~/app/"
   
-  doppler-secrets: 
-    runs-on: ubuntu-latest
-    needs: prepare-VM
-    steps:
-      - name: Install Doppler CLI
-        run: curl -Ls https://cli.doppler.com/install.sh | sudo sh
-
-      - name: Verify Doppler setup
-        run: |
-          export DOPPLER_TOKEN=${{ secrets.DOPPLER_TOKEN }}
-          doppler secrets --project aibuddy --config prd_himanshu
-          echo "✅ Doppler is accessible"
-
   deploy-on-VM:
     runs-on: ubuntu-latest
-    needs: doppler-secrets
+    needs: prepare-VM
     steps:
       - name: Pull and deploy images on VM
         uses: appleboy/ssh-action@v1.0.0
@@ -73,8 +60,13 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
+            if ! command -v doppler &> /dev/null; then
+              curl -Ls https://cli.doppler.com/install.sh | sh
+            else
+              echo "Doppler is already installed"
+            fi
+            export DOPPLER_TOKEN=${{ secrets.DOPPLER_TOKEN }}
             cd ~/app/dockerfiles
-          
             docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin <<EOF
             ${{ secrets.DOCKER_PASS }}
             EOF
