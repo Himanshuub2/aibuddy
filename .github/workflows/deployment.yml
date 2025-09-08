@@ -1,78 +1,78 @@
-name: Deployment Pipeline
-#  CI PART - Building and Pushing Images to Docker Hub
-on:
-  pull_request:
-    types: [closed]
-    branches: [main,master]
-  workflow_dispatch:
-jobs:
-  build-and-push:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+# name: Deployment Pipeline
+# #  CI PART - Building and Pushing Images to Docker Hub
+# on:
+#   pull_request:
+#     types: [closed]
+#     branches: [main,master]
+#   workflow_dispatch:
+# jobs:
+#   build-and-push:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v3
 
-      - name: Login to Docker Hub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKER_USER }}
-          password: ${{ secrets.DOCKER_PASS }}
+#       - name: Login to Docker Hub
+#         uses: docker/login-action@v2
+#         with:
+#           username: ${{ secrets.DOCKER_USER }}
+#           password: ${{ secrets.DOCKER_PASS }}
       
-      - name: Build and Push Frontend and Backend Images to docker hub
-        run: |
-          docker compose -f dockerfiles/docker-compose.yml build
-          docker compose -f dockerfiles/docker-compose.yml push
+#       - name: Build and Push Frontend and Backend Images to docker hub
+#         run: |
+#           docker compose -f dockerfiles/docker-compose.yml build
+#           docker compose -f dockerfiles/docker-compose.yml push
 
-#  CD PART - Deploying on VM
-  prepare-VM:
-    runs-on: ubuntu-latest
-    needs: build-and-push   # run only after build-and-push succeeds
+# #  CD PART - Deploying on VM
+#   prepare-VM:
+#     runs-on: ubuntu-latest
+#     needs: build-and-push   # run only after build-and-push succeeds
 
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+#     steps:
+#       - name: Checkout repository
+#         uses: actions/checkout@v4
 
-      - name: Create docker compose directory in VM
-        uses: appleboy/ssh-action@v1.0.0
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: mkdir -p ~/app
+#       - name: Create docker compose directory in VM
+#         uses: appleboy/ssh-action@v1.0.0
+#         with:
+#           host: ${{ secrets.VM_HOST }}
+#           username: ${{ secrets.VM_USER }}
+#           key: ${{ secrets.VM_SSH_KEY }}
+#           script: mkdir -p ~/app
 
-      - name: Copy docker-compose file to VM directory
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          source: "./dockerfiles/docker-compose.yml"
-          target: "~/app/"
+#       - name: Copy docker-compose file to VM directory
+#         uses: appleboy/scp-action@v0.1.7
+#         with:
+#           host: ${{ secrets.VM_HOST }}
+#           username: ${{ secrets.VM_USER }}
+#           key: ${{ secrets.VM_SSH_KEY }}
+#           source: "./dockerfiles/docker-compose.yml"
+#           target: "~/app/"
   
-  deploy-on-VM:
-    runs-on: ubuntu-latest
-    needs: prepare-VM
-    steps:
-      - name: Pull and deploy images on VM
-        uses: appleboy/ssh-action@v1.0.0
-        with:   
-          host: ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key: ${{ secrets.VM_SSH_KEY }}
-          script: |
-            if ! command -v doppler &> /dev/null; then
-              curl -Ls https://cli.doppler.com/install.sh | sudo sh
-            else
-              echo "Doppler is already installed"
-            fi
-            export DOPPLER_TOKEN=${{ secrets.DOPPLER_TOKEN }}
-            cd ~/app/dockerfiles
-            docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin <<EOF
-            ${{ secrets.DOCKER_PASS }}
-            EOF
-            docker compose down
-            docker compose pull
-            docker compose --env-file <(doppler secrets download --project aibuddy --config prd_himanshu --no-file --format docker) up -d --remove-orphans
+#   deploy-on-VM:
+#     runs-on: ubuntu-latest
+#     needs: prepare-VM
+#     steps:
+#       - name: Pull and deploy images on VM
+#         uses: appleboy/ssh-action@v1.0.0
+#         with:   
+#           host: ${{ secrets.VM_HOST }}
+#           username: ${{ secrets.VM_USER }}
+#           key: ${{ secrets.VM_SSH_KEY }}
+#           script: |
+#             if ! command -v doppler &> /dev/null; then
+#               curl -Ls https://cli.doppler.com/install.sh | sudo sh
+#             else
+#               echo "Doppler is already installed"
+#             fi
+#             export DOPPLER_TOKEN=${{ secrets.DOPPLER_TOKEN }}
+#             cd ~/app/dockerfiles
+#             docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin <<EOF
+#             ${{ secrets.DOCKER_PASS }}
+#             EOF
+#             docker compose down
+#             docker compose pull
+#             docker compose --env-file <(doppler secrets download --project aibuddy --config prd_himanshu --no-file --format docker) up -d --remove-orphans
 
 
             
