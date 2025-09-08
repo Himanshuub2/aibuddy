@@ -59,7 +59,7 @@ jobs:
       - name: Verify Doppler setup
         run: |
           export DOPPLER_TOKEN=${{ secrets.DOPPLER_TOKEN }}
-          doppler secrets --project aibuddy --config prd
+          doppler secrets --project aibuddy --config prd_himanshu
           echo "✅ Doppler is accessible"
 
   deploy-on-VM:
@@ -80,5 +80,5 @@ jobs:
             EOF
             docker compose down
             docker compose pull
-            doppler secrets download --no-file --format dotenv > .env
+            doppler secrets download --project aibuddy --config prd_himanshu --no-file --format env > .env
             docker compose up -d --remove-orphans
