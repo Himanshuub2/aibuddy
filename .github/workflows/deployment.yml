@@ -73,4 +73,4 @@ jobs:
             docker compose down
             docker compose pull
             doppler secrets download --project aibuddy --config prd_himanshu --no-file --format env > .env
-            docker compose up -d --remove-orphans
+            docker compose --env-file .env up -d --remove-orphans
