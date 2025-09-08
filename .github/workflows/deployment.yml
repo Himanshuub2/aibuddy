@@ -48,6 +48,18 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           source: "./dockerfiles/docker-compose.yml"
           target: "~/app/"
+  
+  doppler-secrets: 
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install Doppler CLI
+        run: curl -Ls https://cli.doppler.com/install.sh | sh
+
+      - name: Verify Doppler setup
+        run: |
+          export DOPPLER_TOKEN=${{ secrets.DOPPLER_TOKEN }}
+          doppler secrets --project aibuddy --config prod
+          echo "✅ Doppler is accessible"
 
   deploy-on-VM:
     runs-on: ubuntu-latest
@@ -61,9 +73,11 @@ jobs:
           key: ${{ secrets.VM_SSH_KEY }}
           script: |
             cd ~/app/dockerfiles
+          
             docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin <<EOF
             ${{ secrets.DOCKER_PASS }}
             EOF
             docker compose down
             docker compose pull
+            doppler secrets download --no-file --format dotenv > .env
             docker compose up -d --remove-orphans
