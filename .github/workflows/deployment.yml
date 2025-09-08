@@ -67,10 +67,12 @@ jobs:
             fi
             export DOPPLER_TOKEN=${{ secrets.DOPPLER_TOKEN }}
             cd ~/app/dockerfiles
-            doppler secrets download --project aibuddy --config prd_himanshu --no-file --format env > .env
             docker login -u "${{ secrets.DOCKER_USER }}" --password-stdin <<EOF
             ${{ secrets.DOCKER_PASS }}
             EOF
             docker compose down
-            docker compose --env-file .env pull
-            docker compose --env-file .env up -d --remove-orphans
+            docker compose pull
+            docker compose --env-file <(doppler secrets download --project aibuddy --config prd_himanshu --no-file --format docker) up -d --remove-orphans
+
+
+            
