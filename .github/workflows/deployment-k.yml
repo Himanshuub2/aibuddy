@@ -54,8 +54,10 @@ jobs:
       - name: Sync Doppler secrets to K8s
         run: |
             export DOPPLER_TOKEN=${{ secrets.DOPPLER_TOKEN }}
-            doppler secrets download --format kubernetes > doppler-secret.yaml
-            kubectl apply -f doppler-secret.yaml
+            doppler secrets download --format env > .env
+            kubectl create secret generic doppler-secrets \
+            --from-env-file=.env \
+            --dry-run=client -o yaml | kubectl apply -f -
 
 
       - name: Deploy to Kubernetes
