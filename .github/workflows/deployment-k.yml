@@ -53,13 +53,10 @@ jobs:
 
       - name: Sync Doppler secrets to K8s
         run: |
-          export DOPPLER_TOKEN=${{ secrets.DOPPLER_TOKEN }}
-          doppler kubernetes secrets download \
-            --project aibuddy \
-            --config prd_himanshu \
-            --name doppler-secrets \
-            --create \
-            --overwrite
+            export DOPPLER_TOKEN=${{ secrets.DOPPLER_TOKEN }}
+            doppler secrets download --format kubernetes > doppler-secret.yaml
+            kubectl apply -f doppler-secret.yaml
+
 
       - name: Deploy to Kubernetes
         run: |
