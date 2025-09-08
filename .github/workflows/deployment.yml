@@ -51,6 +51,7 @@ jobs:
   
   doppler-secrets: 
     runs-on: ubuntu-latest
+    needs: prepare-VM
     steps:
       - name: Install Doppler CLI
         run: curl -Ls https://cli.doppler.com/install.sh | sh
@@ -63,7 +64,7 @@ jobs:
 
   deploy-on-VM:
     runs-on: ubuntu-latest
-    needs: prepare-VM
+    needs: doppler-secrets
     steps:
       - name: Pull and deploy images on VM
         uses: appleboy/ssh-action@v1.0.0
