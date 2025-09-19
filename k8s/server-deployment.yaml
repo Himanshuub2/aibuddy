@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: himanshuub2/aibuddy-server:latest
+          image: himanshuub2/aibuddy-server:latestt
           imagePullPolicy: Always
           ports:
             - containerPort: 3000
