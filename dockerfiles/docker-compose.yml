@@ -6,7 +6,7 @@ services:
       - 5432:5432
 
   client:
-    image: himanshuub2/aibuddy-client:latest
+    image: himanshuub2/aibuddy-client:latestt 
     build:
       context: ../client
       dockerfile: ../dockerfiles/dockerfile.client
@@ -16,7 +16,7 @@ services:
       - server
   
   server:
-    image: himanshuub2/aibuddy-server:latest
+    image: himanshuub2/aibuddy-server:latestt
     build:
       context: ..
       dockerfile: ./dockerfiles/dockerfile.server
