@@ -15,6 +15,7 @@ spec:
       containers:
         - name: frontend
           image: himanshuub2/aibuddy-client:latest
+          imagePullPolicy: Always
           ports:
             - containerPort: 80
           envFrom:
