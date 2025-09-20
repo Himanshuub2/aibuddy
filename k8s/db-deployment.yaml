@@ -17,10 +17,23 @@ spec:
           image: postgres:15-alpine
           imagePullPolicy: Always
           ports:
-            - containerPort: 5432
-          envFrom:
-            - secretRef:
-                name: doppler-secrets
+            env:
+            # Pull only specific database values from Doppler secrets
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: doppler-secrets
+                  key: POSTGRES_DB
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: doppler-secrets
+                  key: POSTGRES_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: doppler-secrets
+                  key: POSTGRES_PASSWORD
 
 ---
 apiVersion: v1
