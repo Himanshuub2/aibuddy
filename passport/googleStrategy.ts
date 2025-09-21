@@ -4,7 +4,7 @@ import { db } from '../prisma/prisma';
 export const googleStrategy = new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    callbackURL: "http://localhost:3000/auth/google/callback"
+    callbackURL: `${process.env.GOOGLE_CALLBACK_URL}/auth/google/callback`
 },
     async function (accessToken: string, refreshToken: string, profile: any, cb: any) {
         // check if the user with same email is there
@@ -15,9 +15,9 @@ export const googleStrategy = new GoogleStrategy({
                     email: profile.emails[0].value
                 }
             })
-            
-            if(userExist && userExist.google_id === profile.id){
-                return cb(null, {profile:profile,userId:userExist.id});
+
+            if (userExist && userExist.google_id === profile.id) {
+                return cb(null, { profile: profile, userId: userExist.id });
             }
 
             let user;
@@ -39,7 +39,7 @@ export const googleStrategy = new GoogleStrategy({
                     }
                 })
             }
-            return cb(null, {profile:profile,userId:user.id});
+            return cb(null, { profile: profile, userId: user.id });
         } catch (error) {
             console.log(error);
             return cb(error);
