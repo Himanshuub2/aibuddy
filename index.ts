@@ -34,7 +34,7 @@ app.use(cors({
 
 app.use('/api/ai', aiRouter);
 app.use('/api/auth', authRouter);
-app.get('/test', (req, res) => {
+app.get('/api/test', (req, res) => {
 	res.send('Server is running at port !!');
 })
 app.use(passportInstance.initialize());
