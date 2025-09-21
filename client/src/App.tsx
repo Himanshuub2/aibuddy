@@ -4,6 +4,8 @@ import Signin from './components/Signin';
 import { AuthProvider } from './components/context/Context';
 
 export default function App() {
+    console.log(import.meta.env.VITE_API_URL, '<URL');
+
     return (
         <BrowserRouter>
             <Routes>
