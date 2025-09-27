@@ -170,6 +170,8 @@ authRouter.post('/signup', async (req, res) => {
     catch (err: any) {
         res.status(500).json({
             message: "Something went wrong while signup",
+            error: err,
+            msg: err.message
         })
         return;
     }
