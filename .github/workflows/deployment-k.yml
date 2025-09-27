@@ -75,3 +75,5 @@ jobs:
           kubectl apply -f k8s/db-deployment.yaml
           kubectl apply -f k8s/server-deployment.yaml
           kubectl apply -f k8s/client-deployment.yaml
+          kubectl apply -f k8s/tlsstore.yaml
+          kubectl apply -f k8s/ingress-service.yaml
