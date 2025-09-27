@@ -5,7 +5,8 @@ RUN npm install -g bun
 copy package*.json ./
 copy prisma ./prisma/
 run npm install
-run bunx prisma generate
+
 copy . .
 expose 3000
-cmd ["bun","index.ts"]
+# cmd ["bun","index.ts"]
+cmd ["sh","-c","bun run db:deploy && bun index.ts"]
