@@ -14,7 +14,8 @@ export const otpSignup = () => { };
 
 export const googleLogin = () => {
     // Google OAuth requires a redirect, not an AJAX call
-    window.location.href = `/api/auth/google`;
+    const base = window.location.origin;
+    window.location.href = `${base}/api/auth/google`;
 };
 
 export const verifyUser = async () => {
