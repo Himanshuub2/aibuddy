@@ -1,26 +1,34 @@
-tls:
-  - hosts:
-      - himanshuk.in
-      - www.himanshuk.in
-    secretName: cloudflare-cert
-rules:
-  - host: himanshuk.in
-    http:
-      paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: frontend-svc
-              port:
-                number: 80
-  - host: www.himanshuk.in
-    http:
-      paths:
-        - path: /
-          pathType: Prefix
-          backend:
-            service:
-              name: frontend-svc
-              port:
-                number: 80
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: frontend-ingress
+  namespace: default
+  annotations:
+    kubernetes.io/ingress.class: traefik
+spec:
+  tls:
+    - hosts:
+        - himanshuk.in
+        - www.himanshuk.in
+      secretName: cloudflare-cert
+  rules:
+    - host: himanshuk.in
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-svc
+                port:
+                  number: 80
+    - host: www.himanshuk.in
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-svc
+                port:
+                  number: 80
