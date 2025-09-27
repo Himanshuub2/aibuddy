@@ -19,7 +19,7 @@ const Signin: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string>('');
     const [otpEmail, setOtpEmail] = useState<string>('');
-    console.log(import.meta.env.VITE_API_URL, '<URL');
+    console.log('/api', '-ONLY');
     // Mock API calls - replace with actual API endpoints
     const handleEmailSignin = async (data: EmailSigninFormData) => {
         setIsLoading(true);
