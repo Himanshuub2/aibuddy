@@ -14,8 +14,7 @@ export const otpSignup = () => { };
 
 export const googleLogin = () => {
     // Google OAuth requires a redirect, not an AJAX call
-    const baseURL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-    window.location.href = `${baseURL}/api/auth/google`;
+    window.location.href = `/api/auth/google`;
 };
 
 export const verifyUser = async () => {
