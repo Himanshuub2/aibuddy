@@ -22,6 +22,14 @@ spec:
                 name: frontend-svc
                 port:
                   number: 80
+# Backend
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-svc
+                port:
+                  number: 3000
     - host: www.himanshuk.in
       http:
         paths:
