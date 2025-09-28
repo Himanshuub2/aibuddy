@@ -7,7 +7,7 @@ type ChatInputTypes = {
 };
 
 export const sendMessage = async (data: ChatInputTypes) => {
-    const response = await fetch(`${import.meta.env.VITE_API_URL}/ai/chat`, {
+    const response = await fetch(`/api/ai/chat`, {
         method: 'POST',
         body: JSON.stringify(data),
         credentials: 'include',
