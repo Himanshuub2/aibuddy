@@ -194,14 +194,24 @@ authRouter.get('/google',
     passportInstance.authenticate('google', { scope: ['profile', 'email'], session: false })
 );
 
-authRouter.get('/google/callback',
-    passportInstance.authenticate('google', { failureRedirect: '/login', session: false }),
-    function (req, res) {
-        // Successful authentication, redirect home.
-        const user = req.user as GoogleUser;
-        const token = jwt.sign({ userId: user.userId }, process.env.JWT_SECRET!)
-        res.cookie('auth_token', token, cookieObj)
+authRouter.get('/google/callback', (req, res, next) => {
+    passportInstance.authenticate('google', { session: false }, (err, user, info) => {
+        if (err) {
+            console.error("OAuth Error:", err);        // <-- Log server-side error
+            return res.status(500).send("OAuth Error: " + err.message);
+        }
+        if (!user) {
+            console.error("Google Response Info:", info); // <-- Log info from Google / Passport
+            return res.status(401).send("Login failed: " + JSON.stringify(info));
+        }
+
+        // Successful authentication
+        const googleUser = user as GoogleUser;
+        const token = jwt.sign({ userId: googleUser.userId }, process.env.JWT_SECRET!);
+        res.cookie('auth_token', token, cookieObj);
         res.redirect(`${process.env.FRONTEND_URL}/chat`);
-    });
+    })(req, res, next);
+});
+
 
 export default authRouter;
