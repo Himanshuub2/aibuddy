@@ -9,6 +9,7 @@ export const googleStrategy = new GoogleStrategy({
     async function (accessToken: string, refreshToken: string, profile: any, cb: any) {
         // check if the user with same email is there
         // if not then create new user
+        console.log("HERE-", profile)
         try {
             const userExist = await db.user.findUnique({
                 where: {
@@ -46,3 +47,4 @@ export const googleStrategy = new GoogleStrategy({
         }
     }
 );
+
