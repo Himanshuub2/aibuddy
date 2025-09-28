@@ -1,7 +1,7 @@
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { db } from '../prisma/prisma';
 
-export const googleStrategy = new GoogleStrategy({
+const strategy = new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.GOOGLE_CLIENT_SECRET,
     callbackURL: `${process.env.GOOGLE_CALLBACK_URL}/auth/google/callback`
@@ -48,3 +48,15 @@ export const googleStrategy = new GoogleStrategy({
     }
 );
 
+export const orig = strategy._oauth2.getOAuthAccessToken;
+strategy._oauth2.getOAuthAccessToken = function (code, params, callback) {
+    console.log("🔍 Token Exchange Request:", {
+        client_id: this._clientId,
+        client_secret: this._clientSecret ? "(set)" : "(missing)",
+        redirect_uri: params.redirect_uri,
+        code,
+    });
+    return orig.call(this, code, params, callback);
+};
+
+export { strategy as googleStrategy };
