@@ -1,4 +1,4 @@
-import { useEffect, useReducer } from 'react';
+import React, { useEffect, useReducer } from 'react';
 import { AuthContext } from '.';
 import { verifyUser } from '../api/authApi';
 import { useNavigate } from 'react-router-dom';
@@ -31,6 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         async function fetchUser() {
             const user = await verifyUser();
             if (!user.loggedIn) {
+                console.log('CAME HRERE !!')
                 navigate('/');
                 return;
             }
@@ -42,6 +43,5 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         <AuthContext.Provider value={{ ...state, dispatch }}>
             {children}
         </AuthContext.Provider>
-    )
-}
-
+    );
+};

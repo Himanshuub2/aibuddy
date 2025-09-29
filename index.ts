@@ -18,6 +18,7 @@ app.use(cors({
 		'http://127.0.0.1:5174', // Alternative localhost
 		'http://localhost:4173', // Vite preview
 		process.env.VM_IP,
+		process.env.FRONTEND_URL,
 	],
 	credentials: true, // Important for cookies/auth
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
