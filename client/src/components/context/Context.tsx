@@ -29,6 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const navigate = useNavigate();
     useEffect(() => {
         async function fetchUser() {
+            console.log(document.cookie, '---COOKIE')
             const user = await verifyUser();
             if (!user.loggedIn) {
                 console.log('CAME HRERE !!')
