@@ -209,7 +209,10 @@ authRouter.get('/google/callback', (req, res, next) => {
         const googleUser = user as GoogleUser;
         const token = jwt.sign({ userId: googleUser.userId }, process.env.JWT_SECRET!);
         res.cookie('auth_token', token, cookieObj);
+        console.log(token, cookieObj, '<COOKIE')
+        console.log(res.getHeaders(), '---HEADERS')
         res.redirect(`${process.env.FRONTEND_URL}/chat`);
+
     })(req, res, next);
 });
 
