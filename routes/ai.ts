@@ -126,6 +126,7 @@ aiRouter.post('/chat', auth as RequestHandler, async (req, res) => {
         })
         return;
     }
+    // 
 
     let existingMessages = InMemoryStore.getInstance().get(conversationId);
     if (existingMessages.length === 0) {
