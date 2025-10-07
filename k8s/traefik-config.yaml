@@ -9,15 +9,16 @@ spec:
       web:
         expose: true
         port: 80
+        hostPort: 80
       websecure:
         expose: true
         port: 443
-        # Use hostPort so container 443 maps to VM 443
         hostPort: 443
     additionalArguments:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
-    # Optional: Use existing cloudflare-cert secret
-    ingressRoute:
-      tls:
-        secretName: cloudflare-cert
+      - "--entrypoints.websecure.http.tls=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
+      - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
+      - "--certificatesresolvers.letsencrypt.acme.email=you@example.com"
+      - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
