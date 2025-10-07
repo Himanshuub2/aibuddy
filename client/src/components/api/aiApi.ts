@@ -6,16 +6,34 @@ type ChatInputTypes = {
     model: string;
 };
 
+export const getModels = async () => {
+    const response = await axiosInstance.get('/ai/get-models');
+    return response.data.models;
+};
+
 export const sendMessage = async (data: ChatInputTypes) => {
-    const response = await fetch(`/api/ai/chat`, {
-        method: 'POST',
-        body: JSON.stringify(data),
-        credentials: 'include',
-        headers: {
-            'Content-Type': 'application/json'
+    let base = '';
+    if (import.meta.env.MODE === 'development') {
+        base = import.meta.env.VITE_API_BASE_URL;
+    }
+    try {
+        const response = await fetch(`${base}/api/ai/chat`, {
+            method: 'POST',
+            body: JSON.stringify(data),
+            credentials: 'include',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        if (!response.ok) {
+            return null;
         }
-    });
-    return response;
+        return response;
+    } catch (err) {
+        console.log(err, 'Error sending message');
+        return null;
+    }
+
 };
 
 export const getUserConversations = async () => {

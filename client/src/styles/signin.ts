@@ -238,6 +238,19 @@ const signinStyles: { [key: string]: any } = {
         fontSize: '14px',
         marginBottom: '16px',
         textAlign: 'center'
+    },
+
+    checkboxContainer: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px',
+        marginTop: '4px'
+    },
+
+    checkboxLabel: {
+        fontSize: '14px',
+        color: '#000000',
+        cursor: 'pointer'
     }
 };
 

@@ -3,14 +3,17 @@ import { googleStrategy } from './googleStrategy';
 import type { CookieOptions } from 'express';
 import { localStrategy } from './customStrategy';
 
-export const cookieObj: CookieOptions = {
+const cookieObj: CookieOptions = {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
+    secure: true,
     maxAge: 1 * 24 * 60 * 60 * 1000, // 1 day
-    sameSite: 'none',
-    domain: ".himanshuk.in",
-    path: '/'
+    sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
 }
+if (process.env.NODE_ENV === 'production') {
+    cookieObj.domain = ".himanshuk.in";
+    cookieObj.path = '/';
+}
+export { cookieObj };
 passport.use(googleStrategy);
 passport.use(localStrategy);
 

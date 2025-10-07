@@ -9,7 +9,8 @@ import EmailSignup from './EmailSignup';
 import EmailOTPRequest from './EmailOTPRequest';
 import OTPVerification from './OTPVerification';
 import GoogleSignin from './GoogleSignin';
-import { googleLogin } from './api/authApi';
+import { customSignup, googleLogin, loginSignup } from './api/authApi';
+import { useNavigate } from 'react-router-dom';
 
 const useStyles = createUseStyles(signinStyles);
 
@@ -19,20 +20,14 @@ const Signin: React.FC = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string>('');
     const [otpEmail, setOtpEmail] = useState<string>('');
-    console.log('/api', '-ONLY');
+    const navigate = useNavigate();
     // Mock API calls - replace with actual API endpoints
     const handleEmailSignin = async (data: EmailSigninFormData) => {
         setIsLoading(true);
         setError('');
-        console.log(data);
         try {
-            // TODO: Replace with actual API call
-
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Simulate success
-            alert('Sign in successful! (This is a mock response)');
+            await loginSignup(data);
+            navigate('/chat');
         } catch (err) {
             setError('Invalid email or password');
         } finally {
@@ -43,15 +38,9 @@ const Signin: React.FC = () => {
     const handleEmailSignup = async (data: EmailSignupFormData) => {
         setIsLoading(true);
         setError('');
-        console.log(data);
         try {
-            // TODO: Replace with actual API call
-
-            // Simulate API delay
-            await new Promise(resolve => setTimeout(resolve, 1000));
-
-            // Simulate success
-            alert('Account created successfully! (This is a mock response)');
+            await customSignup(data);
+            navigate('/chat');
         } catch (err) {
             setError('Failed to create account. Please try again.');
         } finally {
@@ -203,6 +192,7 @@ const Signin: React.FC = () => {
                     </>
                 )}
             </div>
+
         </div>
     );
 };

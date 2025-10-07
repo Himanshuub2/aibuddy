@@ -77,6 +77,19 @@ const EmailSignin: React.FC<EmailSigninProps> = ({
                     {errors.password && <span className={classes.errorMessage}>{errors.password.message}</span>}
                 </div>
 
+                <div className={classes.inputGroup}>
+                    <div className={classes.checkboxContainer}>
+                        <input
+                            id='isAdmin'
+                            type='checkbox'
+                            {...register('isAdmin')}
+                        />
+                        <label htmlFor='isAdmin' className={classes.checkboxLabel}>
+                            Login as Admin
+                        </label>
+                    </div>
+                </div>
+
                 <button type='submit' className={classes.button} disabled={isLoading}>
                     {isLoading ? <span className={classes.loading}>Signing in...</span> : 'Sign In'}
                 </button>
@@ -109,6 +122,8 @@ const EmailSignin: React.FC<EmailSigninProps> = ({
                     Sign up
                 </span>
             </div>
+
+
         </div>
     );
 };

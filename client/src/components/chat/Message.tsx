@@ -2,6 +2,7 @@ import React from 'react';
 import { createUseStyles } from 'react-jss';
 import { chatStyles } from '../../styles/chat/chatStyles';
 import type { MessageProps } from './types';
+import LLMResponse from '../ReactMarkdown';
 
 const useStyles = createUseStyles(chatStyles);
 
@@ -27,8 +28,9 @@ const Message: React.FC<MessageProps> = ({ message }) => {
                 <div
                     className={`${classes.messageContent} ${message.role === 'assistant' ? classes.assistantMessage : classes.userMessage
                         }`}
+                    style={{ color: message.color ? message.color : '' }}
                 >
-                    {message.content}
+                    {message.role === 'assistant' ? <LLMResponse content={message.content} /> : message.content}
                     {/* {message.isStreaming && isLastMessage && <StreamingIndicator />} */}
                 </div>
             </div>

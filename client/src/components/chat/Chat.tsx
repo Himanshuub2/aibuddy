@@ -5,14 +5,15 @@ import type { Conversation, Message, ConversationInfo } from './types';
 import MessagesContainer from './MessagesContainer';
 import ChatInput from './ChatInput';
 import { deleteConversation, getConversationById, getUserConversations, newConversation, sendMessage } from '../api/aiApi';
-
 import Sidebar from './Sidebar';
+import isEmpty from 'lodash/isEmpty';
 import { useContext } from 'react';
 import { AuthContext } from '../context';
-
+import { useNavigate } from 'react-router-dom';
+import { logout } from '../api/authApi';
+import { toast, ToastContainer } from 'react-toastify';
 const useStyles = createUseStyles(chatStyles);
 
-// const BACKEND_URL = 'http://localhost:3000'; // Replace with your backend URL
 
 const Chat: React.FC = () => {
 	const classes = useStyles();
@@ -21,8 +22,9 @@ const Chat: React.FC = () => {
 	const [streamedContent, setStreamedContent] = useState<Message[]>([]);
 	const [conversationInfo, setConversationInfo] = useState<ConversationInfo>({} as ConversationInfo);
 	const [conversationList, setConversationList] = useState<Conversation[]>([]);
-	// Initialize with a sample conversation for demo purposes
+	const navigate = useNavigate();
 	const { user }: any = useContext(AuthContext);
+
 	useEffect(() => {
 		async function fetchConversations() {
 			const conversationList = await getUserConversations();
@@ -34,10 +36,31 @@ const Chat: React.FC = () => {
 		fetchConversations();
 	}, []);
 
-	const handleSendMessage = async (content: string) => {
+	const refreshConversationList = async () => {
+		try {
+			const updatedConversationList = await getUserConversations();
+			setConversationList(updatedConversationList);
+		} catch (error) {
+			console.error('Error refreshing conversation list:', error);
+		}
+	};
+
+	useEffect(() => {
+		if (conversationInfo?.messages?.length === 2) {
+			refreshConversationList();
+		}
+	}, [conversationInfo?.messages?.length]);
+
+	useEffect(() => {
+		if (isEmpty(conversationList)) {
+			setStreamedContent([]);
+		}
+	}, [conversationList])
+
+	const handleSendMessage = async (content: string, model: string) => {
 		const obj: any = {
 			message: content,
-			model: 'openai/gpt-3.5-turbo'
+			model: model
 		};
 		if (conversationInfo?.id) {
 			obj.conversationId = conversationInfo.id;
@@ -54,17 +77,33 @@ const Chat: React.FC = () => {
 		const fetchStream = async () => {
 			try {
 				const response = await sendMessage(obj);
-				if (!response.body) {
+				if (!response) {
+					const errorObj = {
+						content: 'Error with AI respnose !! ',
+						role: 'assistant',
+						conversationId: conversationInfo?.id || '',
+						color: '#FF0000'
+					}
+					setStreamedContent([...updateMessages, errorObj]);
+					const updatedConversation = { ...conversationInfo, messages: [...conversationInfo?.messages || [], errorObj] };
+					setConversationInfo(updatedConversation);
+					toast('Error with AI respnose Either the request is rate limited or the AI is not responding. Try with other model !!!');
 					return;
 				}
 				const reader = response.body?.getReader();
+				if (!reader) {
+					return;
+				}
 				const decoder = new TextDecoder('utf-8');
 
 				let result = '';
 				while (true) {
-					const { done, value } = await reader.read();
+					const { done, value } = await reader?.read();
 					if (done) break;
 					result += decoder.decode(value, { stream: true });
+					if (result.includes('event: error')) {
+						return;
+					}
 					const assistantObj = {
 						content: result,
 						role: 'assistant',
@@ -88,9 +127,9 @@ const Chat: React.FC = () => {
 	const handleNewConversation = async () => {
 		const { conversationId, title } = await newConversation();
 		setConversationInfo({ id: conversationId, title: title } as ConversationInfo);
-		setConversationList([{ id: conversationId, title: title }, ...conversationList])
+		setConversationList([{ id: conversationId, title: title }, ...conversationList]);
+		setStreamedContent([]);
 	};
-
 	const handleSelectConversation = async (conversationId: string) => {
 		if (!conversationId) {
 			setConversationInfo({} as ConversationInfo);
@@ -112,13 +151,22 @@ const Chat: React.FC = () => {
 		setStreamedContent(conversationInfo?.messages || []);
 	};
 
+	async function handleLogout() {
+		await logout();
+		navigate('/');
+	}
+
 	return (
 		<div className={classes.chatContainer}>
+			<ToastContainer
+				autoClose={7000}
+			/>
 			<Sidebar conversations={conversationList}
 				activeConversationId={conversationInfo?.id || null}
 				onSelectConversation={handleSelectConversation}
 				onNewConversation={handleNewConversation}
 				onDeleteConversation={handleDeleteConversation}
+				handleLogout={handleLogout}
 			/>
 			<div className={classes.chatMain}>
 				<MessagesContainer
