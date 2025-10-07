@@ -12,6 +12,12 @@ spec:
       websecure:
         expose: true
         port: 443
+        # Use hostPort so container 443 maps to VM 443
+        hostPort: 443
     additionalArguments:
       - "--entrypoints.web.address=:80"
       - "--entrypoints.websecure.address=:443"
+    # Optional: Use existing cloudflare-cert secret
+    ingressRoute:
+      tls:
+        secretName: cloudflare-cert
