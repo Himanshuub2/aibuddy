@@ -3,7 +3,6 @@ import { useForm } from 'react-hook-form';
 import { createUseStyles } from 'react-jss';
 import { signinStyles } from '../styles/signin';
 import type { EmailSignupFormData, AuthFormProps } from './types';
-import { customSignup } from './api/authApi';
 
 const useStyles = createUseStyles(signinStyles);
 
