@@ -7,3 +7,4 @@ export default async function aiModels() {
     const modelsData = await models.json() as any;
     return modelsData.data;
 }
+// trigger
