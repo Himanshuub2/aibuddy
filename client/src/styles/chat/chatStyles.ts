@@ -24,11 +24,9 @@ const chatStyles: { [key: string]: any } = {
         backgroundColor: '#ffffff'
     },
 
-    newChatButton: {
+    SidebarButton: {
         width: '100%',
         padding: '12px 16px',
-        backgroundColor: '#000000',
-        color: '#ffffff',
         border: 'none',
         borderRadius: '8px',
         fontSize: '14px',
@@ -39,11 +37,22 @@ const chatStyles: { [key: string]: any } = {
         alignItems: 'center',
         justifyContent: 'center',
         gap: '8px',
+
+    },
+    newChatBtn: {
+        backgroundColor: '#000000',
+        color: '#ffffff',
         '&:hover': {
             backgroundColor: '#333333'
         }
     },
-
+    logoutBtn: {
+        backgroundColor: '#D3D3D3',
+        color: 'black',
+        '&:hover': {
+            backgroundColor: 'white'
+        }
+    },
     conversationsList: {
         flex: 1,
         overflow: 'auto',
@@ -229,7 +238,8 @@ const chatStyles: { [key: string]: any } = {
         display: 'flex',
         alignItems: 'flex-end',
         gap: '12px',
-        maxWidth: '100%'
+        maxWidth: '100%',
+        position: 'relative',
     },
 
     chatInput: {
@@ -313,7 +323,92 @@ const chatStyles: { [key: string]: any } = {
         color: '#666666',
         maxWidth: '400px'
     },
+    dropdownContainer: {
+        position: 'absolute',
+        bottom: '8px',
+        left: '12px',
+        zIndex: 10,
+    },
 
+    dropdownTrigger: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+        padding: '4px 8px',
+        backgroundColor: '#f5f5f5',
+        border: '1px solid #e0e0e0',
+        borderRadius: '6px',
+        fontSize: '12px',
+        color: '#666',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease',
+        '&:hover': {
+            backgroundColor: '#eeeeee',
+            borderColor: '#d0d0d0',
+        },
+        '&:disabled': {
+            opacity: 0.5,
+            cursor: 'not-allowed',
+        },
+    },
+
+    dropdownLabel: {
+        fontSize: '11px',
+        fontWeight: 500,
+        whiteSpace: 'nowrap',
+    },
+
+    dropdownMenu: {
+        position: 'absolute',
+        bottom: '100%',
+        left: 0,
+        marginBottom: '4px',
+        backgroundColor: 'white',
+        border: '1px solid #e0e0e0',
+        borderRadius: '8px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.1)',
+        minWidth: '150px',
+        maxHeight: '200px',
+        overflowY: 'auto',
+        zIndex: 1000,
+    },
+
+    dropdownOption: {
+        display: 'block',
+        width: '100%',
+        padding: '8px 12px',
+        fontSize: '13px',
+        color: '#333',
+        backgroundColor: 'transparent',
+        border: 'none',
+        textAlign: 'left',
+        cursor: 'pointer',
+        transition: 'background-color 0.2s ease',
+        '&:hover': {
+            backgroundColor: '#f5f5f5',
+        },
+        '&:first-child': {
+            borderTopLeftRadius: '8px',
+            borderTopRightRadius: '8px',
+        },
+        '&:last-child': {
+            borderBottomLeftRadius: '8px',
+            borderBottomRightRadius: '8px',
+        },
+    },
+
+    dropdownOptionSelected: {
+        backgroundColor: '#e3f2fd',
+        color: '#1976d2',
+        fontWeight: 500,
+    },
+
+    // Update chatInput to add padding-left for the dropdown
+    // chatInput: {
+    //     // ... existing styles ...
+    //     paddingLeft: '80px', // Add space for dropdown
+    //     // ... rest of existing styles
+    // },
     // Loading states
     loadingDots: {
         display: 'inline-flex',

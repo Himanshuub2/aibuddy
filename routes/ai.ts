@@ -2,10 +2,27 @@ import { Router, type RequestHandler } from "express";
 import { CreateChatSchema, type RequestType, type RoleType } from "../types";
 import { createCompletion } from "../openrouter";
 import { InMemoryStore } from "../InMemoryStore";
-import auth from "../middleware/authMiddleware";
+import { userAuth as auth } from "../middleware/authMiddleware";
 import { db } from "../prisma/prisma";
+import { userAuth as auth } from "../middleware/authMiddleware";
+import promptMiddleware from "../middleware/promptMiddleware";
 
 const aiRouter = Router();
+
+aiRouter.get('/get-models', auth as RequestHandler, async (req, res) => {
+    const models = await db.lLMModels.findMany({
+        select: {
+            model_id: true,
+            name: true,
+            description: true,
+            context_length: true,
+        },
+        orderBy: {
+            context_length: 'desc'
+        }
+    });
+    res.status(200).json({ models });
+});
 
 aiRouter.get('/conversations', auth as RequestHandler, async (req, res) => {
     const { userId } = req as RequestType
@@ -107,12 +124,11 @@ aiRouter.get('/new-conversation', auth as RequestHandler, async (req, res) => {
         return;
     }
 })
-aiRouter.post('/chat', auth as RequestHandler, async (req, res) => {
+aiRouter.post('/chat', auth as RequestHandler, promptMiddleware as RequestHandler, async (req, res) => {
     const { userId } = req as RequestType
     const { success, data, error } = CreateChatSchema.safeParse(req.body);
-
     const conversationId = data?.conversationId ?? Bun.randomUUIDv7();
-
+    console.log(data?.message, '<=== message');
     if (!userId) {
         res.status(401).json({
             message: "Unauthorized"
@@ -126,78 +142,106 @@ aiRouter.post('/chat', auth as RequestHandler, async (req, res) => {
         })
         return;
     }
-    // 
 
     let existingMessages = InMemoryStore.getInstance().get(conversationId);
-    if (existingMessages.length === 0) {
-        const messages = await db.message.findMany({
-            where: {
-                conversationId
-            }
-        })
-        const isInitialMessage = messages.length <= 2;
-        if (isInitialMessage) {
-            await db.conversation.update({
+    try {
+
+        if (existingMessages.length === 0) {
+            const messages = await db.message.findMany({
                 where: {
-                    id: conversationId
-                },
-                data: {
-                    title: data.message.substring(0, 80) + "..."
+                    conversationId
                 }
             })
+            const isInitialMessage = messages.length <= 2;
+            if (isInitialMessage) {
+                const conversationExists = await db.conversation.findUnique({
+                    where: { id: conversationId }
+                });
+
+                if (conversationExists) {
+                    await db.conversation.update({
+                        where: {
+                            id: conversationId
+                        },
+                        data: {
+                            title: data.rawmsg.substring(0, 80) + "..."
+                        }
+                    });
+                } else {
+                    await db.conversation.create({
+                        data: {
+                            id: conversationId,
+                            userId,
+                            title: data.rawmsg.substring(0, 80) + "..."
+                        }
+                    });
+                }
+            }
         }
-        messages.map((msg) => {
-            InMemoryStore.getInstance().add(conversationId, {
-                role: msg.role as RoleType,
-                content: msg.content
+
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Connection', 'keep-alive');
+
+        let response = "";
+        try {
+
+            const done = await createCompletion([...existingMessages, {
+                role: 'user',
+                content: data.message
+            }], data.model, (chunk: string) => {
+                console.log(chunk);
+                response += chunk;
+                res.write(chunk);
+            });
+        }
+        catch (err) {
+            res.status(500).json({
+                message: "Error in chat completion",
+                error: err
             })
+            res.flushHeaders();
+
+            res.end();
+            return;
+        }
+
+        res.flushHeaders();
+
+        // End the stream
+        InMemoryStore.getInstance().add(conversationId, {
+            role: 'user',
+            content: data.rawmsg
+        })
+
+        InMemoryStore.getInstance().add(conversationId, {
+            role: 'assistant',
+            content: response
+        })
+
+        // store in db
+        const msg = await db.message.createMany({
+            data: [
+                {
+                    conversationId,
+                    content: data.rawmsg,
+                    role: 'user'
+                },
+                {
+                    conversationId,
+                    content: response,
+                    role: 'assistant'
+                }
+            ]
         })
     }
-
-    //open router - Set up streaming headers
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Connection', 'keep-alive');
-    res.flushHeaders();
-    let response = "";
-    const done = await createCompletion([...existingMessages, {
-        role: 'user',
-        content: data.message
-    }], data.model, (chunk: string) => {
-        console.log(chunk);
-        response += chunk;
-        res.write(chunk);
-    });
-
-
-    // End the stream
-    res.end();
-    InMemoryStore.getInstance().add(conversationId, {
-        role: 'user',
-        content: data.message
-    })
-
-    InMemoryStore.getInstance().add(conversationId, {
-        role: 'assistant',
-        content: response
-    })
-
-    // store in db
-    const msg = await db.message.createMany({
-        data: [
-            {
-                conversationId,
-                content: data.message,
-                role: 'user'
-            },
-            {
-                conversationId,
-                content: response,
-                role: 'assistant'
-            }
-        ]
-    })
-
+    catch (err) {
+        res.status(500).json({
+            message: "Error in chat completion",
+            error: err
+        })
+        return;
+    }
 })
 
 

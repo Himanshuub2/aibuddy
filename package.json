@@ -4,6 +4,7 @@
   "type": "module",
   "private": true,
   "scripts": {
+    "db:dev": "bunx prisma migrate dev",
     "db:deploy": "bunx prisma migrate deploy && bunx prisma generate"
   },
   "devDependencies": {

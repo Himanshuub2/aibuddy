@@ -2,6 +2,7 @@
 export interface EmailSigninFormData {
     email: string;
     password: string;
+    isAdmin?: boolean;
 }
 
 export interface EmailSignupFormData {

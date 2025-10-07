@@ -14,12 +14,17 @@ datasource db {
   provider = "postgresql"
   url      = env("DB_CONNECTION_STRING")
 }
+enum Role {
+  User
+  Admin
+}
 
 model User {
   id        String   @id @default(uuid())
   email     String?   @unique
   password  String?   
   google_id String?
+  role      Role   @default(User)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   Conversation Conversation[]
@@ -48,3 +53,23 @@ model Message {
   @@map("messages")
 }
 
+model Model {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("models")
+}
+
+model LLMModels {
+  id        String   @id @default(uuid())
+  model_id String
+  canonical_slug String
+  name      String
+  description String
+  context_length Int
+  pricing Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@map("llm_models")
+}

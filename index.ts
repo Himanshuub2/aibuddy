@@ -6,6 +6,7 @@ import errorHandler from "./middleware/errorHandler";
 import passportInstance from './passport/init';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import adminRouter from "./routes/admin";
 
 const app = express();
 app.use(express.json());
@@ -35,6 +36,7 @@ app.use(cors({
 
 app.use('/api/ai', aiRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/admin', adminRouter);
 app.get('/api/test', (req, res) => {
 	res.send('Server is running at port !!');
 })

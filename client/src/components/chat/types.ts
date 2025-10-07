@@ -4,6 +4,7 @@ export interface Message {
     content: string;
     role: string;
     conversationId: string | null;
+    color?: string;
     // isStreaming?: boolean;
 }
 
@@ -37,6 +38,7 @@ export interface StreamingMessage {
 // Component props
 export interface MessageProps {
     message: Message;
+    responseError?: string;
 }
 
 export interface ConversationItemProps {
@@ -47,7 +49,7 @@ export interface ConversationItemProps {
 }
 
 export interface ChatInputProps {
-    onSendMessage: (content: string) => void;
+    onSendMessage: (content: string, model: string) => void;
     isLoading?: boolean;
     disabled?: boolean;
 }
@@ -58,4 +60,5 @@ export interface SidebarProps {
     onSelectConversation: (conversationId: string) => void;
     onNewConversation: () => void;
     onDeleteConversation?: (conversationId: string) => void;
+    handleLogout: () => void;
 }

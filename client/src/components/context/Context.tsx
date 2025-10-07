@@ -29,14 +29,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const navigate = useNavigate();
     useEffect(() => {
         async function fetchUser() {
-            console.log(document.cookie, '---COOKIE')
-            const user = await verifyUser();
-            if (!user.loggedIn) {
-                console.log('CAME HRERE !!')
+            try {
+                const user = await verifyUser();
+                if (!user.loggedIn) {
+                    navigate('/');
+                    return;
+                }
+                dispatch({ type: 'SET_USER', payload: user });
+            }
+            catch (err) {
+                console.log(err)
                 navigate('/');
                 return;
             }
-            dispatch({ type: 'SET_USER', payload: user });
+
         }
         fetchUser();
     }, []);

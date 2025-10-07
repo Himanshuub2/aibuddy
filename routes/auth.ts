@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { Router, type RequestHandler } from "express";
 import { CreateUser, VerifyUser } from "../types";
 import sendEmail from "../twilio";
 import jwt from 'jsonwebtoken';
@@ -6,15 +6,18 @@ import { OTP } from "../otp";
 import { db } from "../prisma/prisma";
 import passportInstance, { cookieObj } from "../passport/init";
 import bcrypt from 'bcrypt';
+import { userAuth as auth } from "../middleware/authMiddleware";
 
 type GoogleUser = {
     profile: any;
     userId: string;
+    role: string;
 }
 type User = {
     id: string;
     email: string;
     password: string;
+    role: string;
 }
 
 const authRouter = Router();
@@ -156,7 +159,8 @@ authRouter.post('/signup', async (req, res) => {
         const user = await db.user.create({
             data: {
                 email: data?.email,
-                password: hashedPass
+                password: hashedPass,
+                role: data.role
             }
         })
         const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);
@@ -177,16 +181,65 @@ authRouter.post('/signup', async (req, res) => {
     }
 
 
-})
+});
+
+
+authRouter.post('/api-login', async (req, res) => {
+    const { email, password, isAdmin } = req.body;
+
+    try {
+        const user = await db.user.findUnique({
+            where: { email }
+        });
+
+        if (!user || !user.password) {
+            return res.status(401).json({ error: "Invalid credentials" });
+        }
+
+        const isValidPassword = await bcrypt.compare(password, user.password);
+        if (!isValidPassword) {
+            return res.status(401).json({ error: "Invalid credentials" });
+        }
+
+        if (isAdmin && user.role !== 'Admin') {
+            return res.status(403).json({ error: "Admin access required" });
+        }
+
+        let secret = '';
+        if (user.role === 'Admin') {
+            secret = process.env.ADMIN_JWT_SECRET!;
+        } else {
+            secret = process.env.JWT_SECRET!;
+        }
+
+        const token = jwt.sign({ userId: user.id }, secret);
+
+        res.cookie('auth_token', token, cookieObj);
+        res.status(200).json({
+            message: "Login successful",
+            user: { email: user.email }
+        });
+    } catch (error) {
+        res.status(500).json({ error: "Internal server error" });
+    }
+});
+
 
 authRouter.post('/login', passportInstance.authenticate('local', { session: false }), (req, res) => {
     const user = req.user as User;
-    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);
+    let secret = '';
+    if (user?.role === 'Admin') {
+        secret = process.env.ADMIN_JWT_SECRET!;
+    } else {
+        secret = process.env.JWT_SECRET!;
+    }
+    const token = jwt.sign({ userId: user.id }, secret);
     res.cookie('auth_token', token, cookieObj)
-    res.status(200).json({
-        message: "User logged in successfully"
-    })
     res.redirect(`${process.env.FRONTEND_URL}/chat`);
+    res.status(200).json({
+        message: "User logged in successfully",
+        token
+    })
     return;
 });
 
@@ -207,14 +260,26 @@ authRouter.get('/google/callback', (req, res, next) => {
 
         // Successful authentication
         const googleUser = user as GoogleUser;
-        const token = jwt.sign({ userId: googleUser.userId }, process.env.JWT_SECRET!);
+        let secret = '';
+        if (googleUser?.role === 'Admin') {
+            secret = process.env.ADMIN_JWT_SECRET!;
+        } else {
+            secret = process.env.JWT_SECRET!;
+        }
+        const token = jwt.sign({ userId: googleUser.userId }, secret);
         res.cookie('auth_token', token, cookieObj);
-        console.log(token, cookieObj, '<COOKIE')
-        console.log(res.getHeaders(), '---HEADERS')
         res.redirect(`${process.env.FRONTEND_URL}/chat`);
 
     })(req, res, next);
 });
 
+authRouter.get('/logout', auth as RequestHandler, (req, res) => {
+    res.clearCookie('auth_token', cookieObj);
+    res.status(200).json({
+        message: "User logged out successfully"
+    })
+    res.redirect(`${process.env.FRONTEND_URL}/`);
+    return;
+})
 
 export default authRouter;

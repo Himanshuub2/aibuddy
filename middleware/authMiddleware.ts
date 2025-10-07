@@ -3,7 +3,7 @@ import type { Response, NextFunction } from 'express';
 import type { RequestType } from '../types';
 
 
-export default function auth(req: RequestType, res: Response, next: NextFunction) {
+function authMiddleware(req: RequestType, res: Response, next: NextFunction, secret: string) {
     try {
         const header = req.headers.authorization;
         const cookie = req.cookies.auth_token;
@@ -28,7 +28,7 @@ export default function auth(req: RequestType, res: Response, next: NextFunction
             })
             return;
         }
-        const decoded = jwt.verify(token, process.env.JWT_SECRET!);
+        const decoded = jwt.verify(token, secret);
         if (typeof decoded === 'object') {
             req.userId = decoded.userId;
             next();
@@ -48,3 +48,9 @@ export default function auth(req: RequestType, res: Response, next: NextFunction
     }
 
 }
+
+const adminSecret = process.env.ADMIN_JWT_SECRET!;
+const userSecret = process.env.JWT_SECRET!;
+
+export const adminAuth = (req: RequestType, res: Response, next: NextFunction) => authMiddleware(req, res, next, adminSecret);
+export const userAuth = (req: RequestType, res: Response, next: NextFunction) => authMiddleware(req, res, next, userSecret);

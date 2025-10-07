@@ -22,7 +22,6 @@ const EmailSignup: React.FC<EmailSignupProps> = ({ onSubmit, isLoading, error, o
     const password = watch('password');
 
     const onFormSubmit = async (data: EmailSignupFormData) => {
-        await customSignup(data);
         onSubmit(data);
     };
 

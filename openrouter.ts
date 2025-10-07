@@ -42,15 +42,22 @@ export async function createCompletion(messages: MessageType[],
                 }
                 const { done, value } = await reader.read();
                 if (done) break;
-
                 // Append new chunk to buffer
                 buffer += decoder.decode(value, { stream: true });
 
                 // Process complete lines from buffer
+                let count = 0;
                 while (true) {
                     const lineEnd = buffer.indexOf('\n');
                     if (lineEnd === -1) {
-                        // No complete line in buffer, continue reading more data
+                        if (buffer.length > 0) {
+                            const parsed = JSON.parse(buffer);
+                            reject(parsed);
+                            break;
+                        }
+                        break;
+                    }
+                    if (count >= 20) {
                         break;
                     }
                     const line = buffer.slice(0, lineEnd).trim();
@@ -69,6 +76,7 @@ export async function createCompletion(messages: MessageType[],
                             if (content) {
                                 cb(content);
                             }
+                            count++;
                         } catch (e) {
                             // Ignore invalid JSON
                             reject(e);
