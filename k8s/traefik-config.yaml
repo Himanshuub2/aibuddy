@@ -7,11 +7,13 @@ spec:
   valuesContent: |-
     ports:
       web:
-        expose: true
+        expose:
+          default: true
         port: 80
         hostPort: 80
       websecure:
-        expose: true
+        expose:
+          default: true
         port: 443
         hostPort: 443
     additionalArguments:
@@ -20,5 +22,5 @@ spec:
       - "--entrypoints.websecure.http.tls=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge=true"
       - "--certificatesresolvers.letsencrypt.acme.httpchallenge.entrypoint=web"
-      - "--certificatesresolvers.letsencrypt.acme.email=you@example.com"
+      - "--certificatesresolvers.letsencrypt.acme.email=mygmail@gmail.com"  # Update this
       - "--certificatesresolvers.letsencrypt.acme.storage=/data/acme.json"
