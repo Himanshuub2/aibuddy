@@ -69,17 +69,10 @@ jobs:
             --from-env-file=.env \
             --dry-run=client -o yaml | kubectl apply -f -
       
-      - name: Create Cloudflare TLS secret
-        run: |
-            kubectl create secret tls cloudflare-cert \
-              --cert=<(echo "${{ secrets.CLOUDFLARE_CERT }}") \
-              --key=<(echo "${{ secrets.CLOUDFLARE_KEY }}") \
-              -n default --dry-run=client -o yaml | kubectl apply -f -
-
       - name: Deploy to Kubernetes
         run: |
-          kubectl apply -f k8s/traefik-config.yaml
+          kubectl apply -f k8s/cert-manager/certificate.yaml
           kubectl apply -f k8s/db-deployment.yaml
           kubectl apply -f k8s/server-deployment.yaml
-          kubectl apply -f k8s/client-deployment.yaml
+          kubectl apply -f k8s/client-deployment.yaml   
           kubectl apply -f k8s/ingress-service.yaml
