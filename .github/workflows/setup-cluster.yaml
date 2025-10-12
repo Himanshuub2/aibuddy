@@ -1,0 +1,67 @@
+name: Setup Cluster (Ingress + Cert-Manager)
+
+on:
+  workflow_dispatch:  # run manually when needed
+
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Connect to VPS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: 22
+          script: |
+            echo "Connected to VPS successfully!"
+            
+      - name: Set up kubectl and Helm
+        uses: azure/setup-kubectl@v4
+        with:
+          version: v1.29.0
+      - uses: azure/setup-helm@v4
+        with:
+          version: latest
+
+      - name: Configure kubeconfig
+        run: |
+          mkdir -p ~/.kube
+          echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
+          chmod 600 ~/.kube/config
+
+      - name: Install Ingress NGINX
+        run: |
+          helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+          helm repo update
+          helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+            --namespace ingress-nginx \
+            --create-namespace \
+            --set controller.kind=DaemonSet \
+            --set controller.hostPort.enabled=true \
+            --set controller.ingressClass=nginx
+
+      - name: Install Cert-Manager
+        run: |
+          helm repo add jetstack https://charts.jetstack.io
+          helm repo update
+          helm upgrade --install cert-manager jetstack/cert-manager \
+            --namespace cert-manager \
+            --create-namespace \
+            --version v1.13.1 \
+            --set installCRDs=true
+        
+      - name: Create Cloudflare secret
+        run: |
+            kubectl create secret generic cloudflare-api-key-secret \
+            --from-literal=api-key=${{ secrets.CLOUDFLARE_API_TOKEN }} \
+            -n cert-manager --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Apply ClusterIssuer for Lets Encrypt
+        run: |
+            kubectl apply -f k8s/cert-manager/cluster-issuer.yaml      
+
