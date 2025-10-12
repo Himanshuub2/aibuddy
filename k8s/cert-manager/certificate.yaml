@@ -1,0 +1,15 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: aibuddy-certificate
+  namespace: default
+spec:
+  secretName: aibuddy-certificate
+  issuerRef:
+    name: letsencrypt-dns01-issuer
+    kind: ClusterIssuer
+  commonName: himanshuk.in
+  dnsNames:
+    - himanshuk.in
+    - www.himanshuk.in
+    - '*.himanshuk.in'
