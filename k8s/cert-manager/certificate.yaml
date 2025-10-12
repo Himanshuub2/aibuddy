@@ -11,5 +11,4 @@ spec:
   commonName: himanshuk.in
   dnsNames:
     - himanshuk.in
-    - www.himanshuk.in
     - '*.himanshuk.in'
