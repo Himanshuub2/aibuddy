@@ -1,5 +1,5 @@
 import { Router, type RequestHandler } from "express";
-import { adminAuth, userAuth as auth } from "../middleware/authMiddleware";
+import { userAuth as auth, adminAuth } from "../middleware/authMiddleware";
 import aiModels from "../aiModels";
 import { db } from "../prisma/prisma";
 

@@ -23,9 +23,8 @@ type User = {
 const authRouter = Router();
 
 // TODO : Rate limit this
-authRouter.get('/verify', (req, res) => {
+authRouter.get('/verify', async (req, res) => {
     const token = req.cookies.auth_token;
-
     if (!token) {
         res.status(401).json({
             error: "Unauthorized",
@@ -36,13 +35,23 @@ authRouter.get('/verify', (req, res) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET!);
-        if (typeof decoded === 'object') {
-            res.status(200).json({
-                loggedIn: true,
-                user: decoded
+        if (typeof decoded !== 'object') {
+            res.status(401).json({
+                error: "Unauthorized",
+                loggedIn: false
             })
             return;
         }
+        const userRole = await db.user.findUnique({
+            where: {
+                id: decoded.userId
+            }
+        });
+        res.status(200).json({
+            loggedIn: true,
+            role: userRole?.role
+        })
+        return;
     }
     catch (err) {
         res.status(401).json({
@@ -154,6 +163,12 @@ authRouter.post('/signup', async (req, res) => {
             })
             return;
         }
+        if (data.role === 'Admin' && data.adminSecret !== process.env.ADMIN_SECRET) {
+            res.status(400).json({
+                message: "Invalid admin secret , if not admin login as user"
+            })
+            return;
+        }
 
         const hashedPass = await bcrypt.hash(data.password!, 10);
         const user = await db.user.create({
@@ -163,7 +178,7 @@ authRouter.post('/signup', async (req, res) => {
                 role: data.role
             }
         })
-        const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET!);
+        const token = jwt.sign({ userId: user.id, role: user.role }, process.env.JWT_SECRET!);
         res.cookie('auth_token', token, cookieObj)
 
         res.status(200).json({
@@ -205,14 +220,9 @@ authRouter.post('/api-login', async (req, res) => {
             return res.status(403).json({ error: "Admin access required" });
         }
 
-        let secret = '';
-        if (user.role === 'Admin') {
-            secret = process.env.ADMIN_JWT_SECRET!;
-        } else {
-            secret = process.env.JWT_SECRET!;
-        }
+        let secret = process.env.JWT_SECRET!;
 
-        const token = jwt.sign({ userId: user.id }, secret);
+        const token = jwt.sign({ userId: user.id, role: user.role }, secret);
 
         res.cookie('auth_token', token, cookieObj);
         res.status(200).json({
@@ -227,13 +237,8 @@ authRouter.post('/api-login', async (req, res) => {
 
 authRouter.post('/login', passportInstance.authenticate('local', { session: false }), (req, res) => {
     const user = req.user as User;
-    let secret = '';
-    if (user?.role === 'Admin') {
-        secret = process.env.ADMIN_JWT_SECRET!;
-    } else {
-        secret = process.env.JWT_SECRET!;
-    }
-    const token = jwt.sign({ userId: user.id }, secret);
+    let secret = process.env.JWT_SECRET!;
+    const token = jwt.sign({ userId: user.id, role: user.role }, secret);
     res.cookie('auth_token', token, cookieObj)
     res.redirect(`${process.env.FRONTEND_URL}/chat`);
     res.status(200).json({
@@ -260,13 +265,8 @@ authRouter.get('/google/callback', (req, res, next) => {
 
         // Successful authentication
         const googleUser = user as GoogleUser;
-        let secret = '';
-        if (googleUser?.role === 'Admin') {
-            secret = process.env.ADMIN_JWT_SECRET!;
-        } else {
-            secret = process.env.JWT_SECRET!;
-        }
-        const token = jwt.sign({ userId: googleUser.userId }, secret);
+        let secret = process.env.JWT_SECRET!;
+        const token = jwt.sign({ userId: googleUser.userId, role: googleUser.role }, secret);
         res.cookie('auth_token', token, cookieObj);
         res.redirect(`${process.env.FRONTEND_URL}/chat`);
 

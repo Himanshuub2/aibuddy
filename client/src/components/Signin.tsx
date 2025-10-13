@@ -70,7 +70,6 @@ const Signin: React.FC = () => {
     const handleOTPVerification = async (data: OTPFormData) => {
         setIsLoading(true);
         setError('');
-        console.log(data);
 
         try {
             // TODO: Replace with actual API call

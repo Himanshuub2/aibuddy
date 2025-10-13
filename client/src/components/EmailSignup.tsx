@@ -32,6 +32,8 @@ const EmailSignup: React.FC<EmailSignupProps> = ({ onSubmit, isLoading, error, o
             {error && <div className={classes.globalError}>{error}</div>}
 
             <form className={classes.form} onSubmit={handleSubmit(onFormSubmit)}>
+
+
                 <div className={classes.inputGroup}>
                     <label className={classes.label} htmlFor='email'>
                         Email

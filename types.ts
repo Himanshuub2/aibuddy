@@ -20,7 +20,8 @@ export const CreateChatSchema = z.object({
 export const CreateUser = z.object({
     email: z.email(),
     password: z.string().min(8).optional(),
-    role: z.enum(['User', 'Admin']).optional().default('User')
+    role: z.enum(['User', 'Admin']).optional().default('User'),
+    adminSecret: z.string().optional()
 })
 
 export const VerifyUser = z.object({
@@ -37,4 +38,5 @@ export type MessageType = {
 
 export interface RequestType extends Request {
     userId: string;
+    role: string;
 }
