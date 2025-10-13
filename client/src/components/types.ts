@@ -45,3 +45,18 @@ export interface OTPResponse {
     success: boolean;
     message?: string;
 }
+
+// Admin form types
+export interface AdminLoginFormData {
+    email: string;
+    password: string;
+}
+
+export interface AdminSignupFormData {
+    email: string;
+    password: string;
+    confirmPassword: string;
+    adminSecret: string;
+}
+
+export type AdminAuthMode = 'login' | 'signup';

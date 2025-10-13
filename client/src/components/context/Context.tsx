@@ -1,4 +1,4 @@
-import React, { useEffect, useReducer } from 'react';
+import React, { useContext, useEffect, useReducer } from 'react';
 import { AuthContext } from '.';
 import { verifyUser } from '../api/authApi';
 import { useNavigate } from 'react-router-dom';
@@ -24,15 +24,19 @@ export const AuthReducer = (state: any, action: any) => {
     }
 }
 
-export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+export const AuthProvider = ({ children, allowedRoles }: { children: React.ReactNode, allowedRoles: string[] }) => {
     const [state, dispatch] = useReducer(AuthReducer, initialState);
     const navigate = useNavigate();
-    useEffect(() => {
+
+    if (!state.user.loggedIn || !allowedRoles.includes(state.user.role)) {
+
         async function fetchUser() {
             try {
+
                 const user = await verifyUser();
-                if (!user.loggedIn) {
+                if (!user.loggedIn || !allowedRoles.includes(user.role)) {
                     navigate('/');
+                    alert('You are not Logged in or not authorized to access this page');
                     return;
                 }
                 dispatch({ type: 'SET_USER', payload: user });
@@ -45,7 +49,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         }
         fetchUser();
-    }, []);
+        return null;
+    }
     return (
         <AuthContext.Provider value={{ ...state, dispatch }}>
             {children}

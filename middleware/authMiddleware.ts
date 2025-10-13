@@ -31,6 +31,7 @@ function authMiddleware(req: RequestType, res: Response, next: NextFunction, sec
         const decoded = jwt.verify(token, secret);
         if (typeof decoded === 'object') {
             req.userId = decoded.userId;
+            req.role = decoded.role;
             next();
             return;
         }
@@ -49,8 +50,21 @@ function authMiddleware(req: RequestType, res: Response, next: NextFunction, sec
 
 }
 
-const adminSecret = process.env.ADMIN_JWT_SECRET!;
 const userSecret = process.env.JWT_SECRET!;
 
-export const adminAuth = (req: RequestType, res: Response, next: NextFunction) => authMiddleware(req, res, next, adminSecret);
 export const userAuth = (req: RequestType, res: Response, next: NextFunction) => authMiddleware(req, res, next, userSecret);
+
+export const adminAuth = (req: RequestType, res: Response, next: NextFunction) => {
+    authMiddleware(req, res, (err) => {
+        if (err) return;
+        if (req.role !== 'Admin') {
+            res.status(401).json({
+                error: "Unauthorized",
+                message: "Admin access required"
+            })
+            return;
+        }
+        next();
+    }, userSecret);
+
+}

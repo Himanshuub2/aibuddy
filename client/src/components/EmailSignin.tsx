@@ -1,6 +1,7 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { createUseStyles } from 'react-jss';
+import { useNavigate } from 'react-router-dom';
 import { signinStyles } from '../styles/signin';
 import type { EmailSigninFormData, AuthFormProps } from './types';
 
@@ -19,13 +20,22 @@ const EmailSignin: React.FC<EmailSigninProps> = ({
     onSwitchToEmailOTP
 }) => {
     const classes = useStyles();
+    const navigate = useNavigate();
     const {
         register,
         handleSubmit,
-        formState: { errors }
+        formState: { errors },
+        watch
     } = useForm<EmailSigninFormData>();
 
+    const isAdmin = watch('isAdmin');
+
     const onFormSubmit = (data: EmailSigninFormData) => {
+        // If admin checkbox is checked, redirect to admin page
+        if (data.isAdmin) {
+            navigate('/admin');
+            return;
+        }
         onSubmit(data);
     };
 
@@ -91,7 +101,13 @@ const EmailSignin: React.FC<EmailSigninProps> = ({
                 </div>
 
                 <button type='submit' className={classes.button} disabled={isLoading}>
-                    {isLoading ? <span className={classes.loading}>Signing in...</span> : 'Sign In'}
+                    {isLoading ? (
+                        <span className={classes.loading}>
+                            {isAdmin ? 'Redirecting to Admin...' : 'Signing in...'}
+                        </span>
+                    ) : (
+                        isAdmin ? 'Go to Admin Portal' : 'Sign In'
+                    )}
                 </button>
             </form>
 

@@ -46,7 +46,6 @@ app.use(passportInstance.initialize());
 // Error handler must be registered AFTER all routes
 app.use(errorHandler);
 if (process.env.NODE_ENV === 'development') {
-	console.log('here')
 	app.use(express.static(path.join(__dirname, './client/dist')));
 	app.get('/{*any}', (req, res) => {
 		res.sendFile(path.join(__dirname, './client/dist/index.html'));
