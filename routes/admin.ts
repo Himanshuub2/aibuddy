@@ -16,7 +16,7 @@ adminRouter.get('/refresh-models', adminAuth as RequestHandler, async (req, res)
             }
             return false;
         })
-        const modelsToInsert = reqModels.map((model) => {
+        const modelsToInsert = reqModels.map((model: any) => {
             return {
                 model_id: model.id,
                 canonical_slug: model.canonical_slug,
@@ -37,6 +37,8 @@ adminRouter.get('/refresh-models', adminAuth as RequestHandler, async (req, res)
     }
     catch (err) {
         console.log('Error in refreshing models', err);
+        res.status(500).json('Error in refreshing models');
+        return;
     }
 
 });
