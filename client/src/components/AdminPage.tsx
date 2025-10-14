@@ -18,7 +18,7 @@ const AdminPage: React.FC = () => {
         try {
             await loginSignup({ ...data, isAdmin: true });
             setSuccessMessage('Login successful! Redirecting to admin dashboard...');
-            navigate('/chat');
+            navigate('/admin-panel');
         } catch (err: any) {
             setError(err?.response?.data?.error || 'Invalid admin credentials. Please try again.');
         } finally {
@@ -39,7 +39,7 @@ const AdminPage: React.FC = () => {
                 role: 'Admin',
                 adminSecret: data.adminSecret
             });
-            navigate('/chat');
+            navigate('/admin-panel');
 
         } catch (err: any) {
             setError(err?.response?.data?.error || 'Failed to create admin account. Please try again.');
