@@ -12,7 +12,7 @@ const useStyles = createUseStyles(chatStyles);
 const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, disabled }) => {
     const classes = useStyles();
     const [message, setMessage] = useState('');
-    const [selectedOption, setSelectedOption] = useState('x-ai/grok-4-fast:free');
+    const [selectedOption, setSelectedOption] = useState('');
     const [isDropdownOpen, setIsDropdownOpen] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
@@ -20,7 +20,27 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, disable
     useEffect(() => {
         async function fetchModels() {
             const models = await getModels();
-            setAvailableModels(models);
+            const sortedModels = models.sort((a: any, b: any) => {
+                const priorityKeywords = ["meta"];
+
+                const aHasPriority = priorityKeywords.some(keyword =>
+                    a.name.toLowerCase().includes(keyword)
+                );
+                const bHasPriority = priorityKeywords.some(keyword =>
+                    b.name.toLowerCase().includes(keyword)
+                );
+
+                if (aHasPriority === bHasPriority) {
+                    return 0;
+                }
+
+                if (aHasPriority && !bHasPriority) {
+                    return -1;
+                }
+
+                return 1;
+            });
+            setAvailableModels(sortedModels);
         }
         fetchModels();
     }, [])
@@ -90,7 +110,7 @@ const ChatInput: React.FC<ChatInputProps> = ({ onSendMessage, isLoading, disable
     );
 
     const canSend = message.trim().length > 0 && !isLoading && !disabled;
-    const selectedLabel = availableModels.find(opt => opt.model_id === selectedOption)?.name || '';
+    const selectedLabel = availableModels.find(opt => opt.model_id === selectedOption)?.name || availableModels[0]?.name;
     return (
         <div className={classes.chatInputContainer}>
             <div className={classes.chatInputWrapper}>

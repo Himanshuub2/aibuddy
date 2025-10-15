@@ -38,7 +38,9 @@ const EmailSignin: React.FC<EmailSigninProps> = ({
         }
         onSubmit(data);
     };
-
+    function redirectToAdmin() {
+        navigate('/admin');
+    }
     return (
         <div>
             <div className={classes.title}>Welcome back</div>
@@ -87,18 +89,7 @@ const EmailSignin: React.FC<EmailSigninProps> = ({
                     {errors.password && <span className={classes.errorMessage}>{errors.password.message}</span>}
                 </div>
 
-                <div className={classes.inputGroup}>
-                    <div className={classes.checkboxContainer}>
-                        <input
-                            id='isAdmin'
-                            type='checkbox'
-                            {...register('isAdmin')}
-                        />
-                        <label htmlFor='isAdmin' className={classes.checkboxLabel}>
-                            Login as Admin
-                        </label>
-                    </div>
-                </div>
+
 
                 <button type='submit' className={classes.button} disabled={isLoading}>
                     {isLoading ? (
@@ -110,6 +101,9 @@ const EmailSignin: React.FC<EmailSigninProps> = ({
                     )}
                 </button>
             </form>
+            <button type='submit' className={classes.button} style={{ width: '100%', marginTop: "1rem" }} onClick={redirectToAdmin}>
+                Login as Admin
+            </button>
 
             <div className={classes.divider}>or</div>
 
