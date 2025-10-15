@@ -11,4 +11,5 @@ spec:
   commonName: aibuddy.himanshuk.in
   dnsNames:
     - aibuddy.himanshuk.in
+    - www.aibuddy.himanshuk.in
     - '*.aibuddy.himanshuk.in'
