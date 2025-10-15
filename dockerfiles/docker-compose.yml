@@ -1,0 +1,29 @@
+version: '3.8'
+services:
+  db:
+    image: postgres:15-alpine
+    ports:
+      - 5432:5432
+
+  client:
+    image: himanshuub2/aibuddy-client:latestt 
+    build:
+      context: ../client
+      dockerfile: ../dockerfiles/dockerfile.client
+    ports:
+      - 80:80
+    depends_on:
+      - server
+  
+  server:
+    image: himanshuub2/aibuddy-server:latestt
+    build:
+      context: ..
+      dockerfile: ./dockerfiles/dockerfile.server
+    ports:
+      - "3000"
+    depends_on:
+      - db
+
+
+
