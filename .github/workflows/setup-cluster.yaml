@@ -1,67 +1,67 @@
-# name: Setup Cluster (Ingress + Cert-Manager)
+name: Deploy to K8s Server
 
-# on:
-#   workflow_dispatch:  # run manually when needed
+on:
+  workflow_dispatch:
 
-# jobs:
-#   setup:
-#     runs-on: ubuntu-latest
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v4
-#       - name: Connect to VPS
-#         uses: appleboy/ssh-action@v1.0.0
-#         with:
-#           host: ${{ secrets.VM_HOST }}
-#           username: ${{ secrets.VM_USER }}
-#           key: ${{ secrets.VM_SSH_KEY }}
-#           port: 22
-#           script: |
-#             echo "Connected to VPS successfully!"
-            
-#       - name: Set up kubectl and Helm
-#         uses: azure/setup-kubectl@v4
-#         with:
-#           version: v1.29.0
-#       - uses: azure/setup-helm@v4
-#         with:
-#           version: latest
+      - name: Copy K8s manifests to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: 22
+          source: "k8s/"
+          target: "/tmp/my-app-deploy"
+          overwrite: true
 
-#       - name: Configure kubeconfig
-#         run: |
-#           mkdir -p ~/.kube
-#           echo "${{ secrets.KUBECONFIG }}" > ~/.kube/config
-#           chmod 600 ~/.kube/config
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        env:
+          DOPPLER_TOKEN: ${{ secrets.DOPPLER_TOKEN }}
+          DOCKER_USER: ${{ secrets.DOCKER_USER }}
+          DOCKER_PASS: ${{ secrets.DOCKER_PASS }}
+          DOCKER_EMAIL: ${{ secrets.DOCKER_EMAIL }}
+        with:
+          host: ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key: ${{ secrets.VM_SSH_KEY }}
+          port: 22
+          envs: DOPPLER_TOKEN,DOCKER_USER,DOCKER_PASS,DOCKER_EMAIL
+          script: |
+            kubectl create namespace my-app --dry-run=client -o yaml | kubectl apply -f -
 
-#       - name: Install Ingress NGINX
-#         run: |
-#           helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-#           helm repo update
-#           helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-#             --namespace ingress-nginx \
-#             --create-namespace \
-#             --set controller.kind=DaemonSet \
-#             --set controller.hostPort.enabled=true \
-#             --set controller.ingressClass=nginx
+            kubectl create secret docker-registry dockerhub-secret \
+              --docker-server=https://index.docker.io/v1/ \
+              --docker-username=$DOCKER_USER \
+              --docker-password=$DOCKER_PASS \
+              --docker-email=$DOCKER_EMAIL \
+              --namespace=my-app \
+              --dry-run=client -o yaml | kubectl apply -f -
 
-#       - name: Install Cert-Manager
-#         run: |
-#           helm repo add jetstack https://charts.jetstack.io
-#           helm repo update
-#           helm upgrade --install cert-manager jetstack/cert-manager \
-#             --namespace cert-manager \
-#             --create-namespace \
-#             --version v1.13.1 \
-#             --set installCRDs=true
-        
-#       - name: Create Cloudflare secret
-#         run: |
-#             kubectl create secret generic cloudflare-api-key-secret \
-#             --from-literal=api-key=${{ secrets.CLOUDFLARE_API_TOKEN }} \
-#             -n cert-manager --dry-run=client -o yaml | kubectl apply -f -
+            export DOPPLER_TOKEN=$DOPPLER_TOKEN
+            doppler secrets download --no-file --format docker > /tmp/my-app-deploy/.env
+            kubectl create secret generic doppler-secrets \
+              --from-env-file=/tmp/my-app-deploy/.env \
+              -n my-app \
+              --dry-run=client -o yaml | kubectl apply -f -
+            rm /tmp/my-app-deploy/.env
 
-#       - name: Apply ClusterIssuer for Lets Encrypt
-#         run: |
-#             kubectl apply -f k8s/cert-manager/cluster-issuer.yaml      
+            cd /tmp/my-app-deploy
+            kubectl apply -f k8s/certificate.yaml
+            kubectl apply -f k8s/db-deployment.yaml
+            kubectl apply -f k8s/server-deployment.yaml
+            kubectl apply -f k8s/client-deployment.yaml
+            kubectl apply -f k8s/ingress-service.yaml
 
+            cd ~
+            rm -rf /tmp/my-app-deploy
+
+            kubectl rollout restart deployment client-deployment -n my-app
+            kubectl rollout restart deployment server-deployment -n my-app
