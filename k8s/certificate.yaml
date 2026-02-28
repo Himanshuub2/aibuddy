@@ -1,0 +1,16 @@
+# certificate-example.yaml
+---
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: whoami-sample-com # name for your certificate file
+  namespace: my-app # same as app and ingress namespace
+spec:
+  secretName: aibuddy-certificate
+  issuerRef:
+    name: letsencrypt-issuer
+    kind: ClusterIssuer
+  commonName: 'aibuddy.himanshuk.in'  # replace with your domain
+  dnsNames:
+  - "aibuddy.himanshuk.in"
+  - "*.aibuddy.himanshuk.in"
