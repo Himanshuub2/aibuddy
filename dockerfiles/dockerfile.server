@@ -1,12 +1,13 @@
-from node:20-alpine as server
+FROM oven/bun:alpine AS deps
+WORKDIR /app
+COPY package*.json bun.lockb ./
+COPY prisma ./prisma/
+RUN bun install --frozen-lockfile --production
 
-workdir /app
-RUN npm install -g bun
-copy package*.json ./
-copy prisma ./prisma/
-run npm install
-
-copy . .
-expose 3000
-# cmd ["bun","index.ts"]
-cmd ["sh","-c","bun run db:deploy && bun index.ts"]
+FROM oven/bun:alpine AS server
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/prisma ./prisma
+COPY . .
+EXPOSE 3000
+CMD ["sh", "-c", "bun run db:deploy && bun index.ts"]
