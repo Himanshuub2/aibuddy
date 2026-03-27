@@ -1,8 +1,8 @@
 FROM oven/bun:alpine AS deps
 WORKDIR /app
-COPY package*.json bun.lockb ./
+COPY package*.json ./
 COPY prisma ./prisma/
-RUN bun install --frozen-lockfile --production
+RUN bun install --production
 
 FROM oven/bun:alpine AS server
 WORKDIR /app
