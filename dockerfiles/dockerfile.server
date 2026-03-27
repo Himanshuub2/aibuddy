@@ -3,7 +3,7 @@ WORKDIR /app
 RUN apk add --no-cache openssl
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN bun install --production --ignore-scripts
+RUN bun install
 RUN bunx prisma generate
 
 FROM oven/bun:alpine AS server
