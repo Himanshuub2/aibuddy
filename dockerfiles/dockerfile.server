@@ -1,11 +1,14 @@
 FROM oven/bun:alpine AS deps
 WORKDIR /app
+RUN apk add --no-cache openssl
 COPY package*.json ./
 COPY prisma ./prisma/
-RUN bun install --production
+RUN bun install --production --ignore-scripts
+RUN bunx prisma generate
 
 FROM oven/bun:alpine AS server
 WORKDIR /app
+RUN apk add --no-cache openssl
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/prisma ./prisma
 COPY . .
